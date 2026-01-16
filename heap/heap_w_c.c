@@ -2,6 +2,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+
+
+// NIE ZROBIONE!!!
+
+
+
+
 // Implementacja kopca typu max-heap (rodzic >= dzieci)
 // Kopiec przechowujemy w tablicy, gdzie dla węzła na indeksie i:
 // - lewe dziecko: 2*i + 1

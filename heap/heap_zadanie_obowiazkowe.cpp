@@ -9,14 +9,17 @@ using namespace std;
 // - prawe dziecko: 2*i + 2
 // - rodzic: (i-1)/2
 
-class MaxHeap {
+class MaxHeap 
+{
 private:
     vector<int> heap;
 
     // Funkcja pomocnicza do wyświetlania kopca
-    void displayHeap() {
+    void displayHeap()
+    {
         cout << "Kopiec: [";
-        for (int i = 0; i < heap.size(); i++) {
+        for (int i = 0; i < heap.size(); i++) 
+        {
             cout << heap[i];
             if (i < heap.size() - 1) cout << ", ";
         }
@@ -24,13 +27,22 @@ private:
     }
 
     // Funkcja pomocnicza - zwraca indeks lewego dziecka
-    int leftChild(int i) { return 2 * i + 1; }
+    int leftChild(int i)
+    {
+        return 2 * i + 1;
+    }
 
     // Funkcja pomocnicza - zwraca indeks prawego dziecka
-    int rightChild(int i) { return 2 * i + 2; }
+    int rightChild(int i)
+    {
+        return 2 * i + 2;
+    }
 
     // Funkcja pomocnicza - zwraca indeks rodzica
-    int parent(int i) { return (i - 1) / 2; }
+    int parent(int i)
+    {
+        return (i - 1) / 2;
+    }
 
 public:
     // ============================================================================
@@ -44,21 +56,34 @@ public:
     //    - Porównuj z rodzicem: parent(i)
     //    - Jeśli element > rodzic, zamień miejscami i kontynuuj
     //    - Zatrzymaj się gdy element <= rodzic lub dotrzesz do korzenia
-    void insert(int value) {
-        // UZUPEŁNIJ KOD
+    void insert(int value)
+    {
+        heap.push_back(value);
+        int i = heap.size() - 1;
+
+        while (i > 0 && heap[i] > heap[parent(i)])
+        {
+            swap(heap[i], heap[parent(i)]);
+            i = parent(i);
+        }
     }
 
     // TODO 2: Zaimplementuj funkcję zwracającą maksymalny element (bez usuwania)
     // W max-heap maksymalny element to zawsze korzeń (heap[0])
     // Zwróć -1 jeśli kopiec jest pusty
-    int getMax() {
-        // UZUPEŁNIJ KOD
+    int getMax() 
+    {
+        if (heap.empty())
+        {
+          return -1;
+        }
+        return heap[0];
     }
 
     // TODO 3: Zaimplementuj funkcję zwracającą rozmiar kopca
     // Po prostu zwróć rozmiar wektora heap
     int size() {
-        // UZUPEŁNIJ KOD
+        return heap.size();
     }
 
     // ============================================================================
@@ -76,8 +101,23 @@ public:
     //    - Jeśli dziecko > rodzic, zamień miejscami
     //    - Kontynuuj dla dziecka
     // 6. Zwróć zapisaną wartość max
-    int extractMax() {
-        // UZUPEŁNIJ KOD
+    int extractMax() 
+    {
+        if (heap.empty())
+        {
+          return -1;
+        }
+
+        int maxValue = heap[0];
+        heap[0] = heap.back();
+        heap.pop_back();
+
+        if (!heap.empty())
+        {
+          heapifyDown(0);
+        }
+
+        return maxValue;
     }
 
     // TODO 5: Zaimplementuj funkcję naprawiającą własność kopca w dół od indeksu i
@@ -87,8 +127,27 @@ public:
     // 1. Znajdź indeksy lewego i prawego dziecka
     // 2. Znajdź największy element spośród: węzeł i, lewe dziecko, prawe dziecko
     // 3. Jeśli największy != i, zamień miejscami i wywołaj rekurencyjnie dla dziecka
-    void heapifyDown(int i) {
-        // UZUPEŁNIJ KOD
+    void heapifyDown(int i) 
+    {
+        int largest = i;
+        int left = leftChild(i);
+        int right = rightChild(i);
+
+        if (left < heap.size() && heap[left] > heap[largest])
+        {
+            largest = left;
+        }
+
+        if (right < heap.size() && heap[right] > heap[largest])
+        {
+          largest = right;
+        }
+        
+        if (largest != i)
+        {
+          swap(heap[i], heap[largest]);
+          heapifyDown(largest);
+        }
     }
 
     // TODO 6: Zaimplementuj funkcję budującą kopiec z dowolnej tablicy
@@ -99,8 +158,14 @@ public:
     //    - Zacznij od ostatniego rodzica: (heap.size()/2 - 1)
     //    - Idź wstecz do korzenia (indeks 0)
     // Złożoność: O(n)
-    void buildHeap(vector<int>& arr) {
-        // UZUPEŁNIJ KOD
+    void buildHeap(vector<int>& arr) 
+    {
+        heap = arr;
+
+        for (int i = heap.size() / 2 - 1; i >= 0; i--)
+        {
+          heapifyDown(i);
+        }
     }
 
     // ============================================================================
@@ -114,8 +179,17 @@ public:
     //    LUB efektywniej:
     // 2. Dołącz wszystkie elementy z other.heap na koniec bieżącego heap
     // 3. Wywołaj buildHeap aby naprawić własność kopca
-    void merge(MaxHeap& other) {
-        // UZUPEŁNIJ KOD
+    void merge(MaxHeap& other) 
+    {
+        for (int val : other.heap)
+        {
+          heap.push_back(val);
+        }
+
+        for (int i = heap.size() / 2 - 1; i >= 0; i--)
+        {
+          heapifyDown(i);
+        }
     }
 
     // TODO 8: Zaimplementuj funkcję zwracającą k-ty największy element
@@ -125,8 +199,22 @@ public:
     // 2. Wykonaj extractMax k razy na kopii
     // 3. Zwróć k-ty wyciągnięty element
     // Zwróć -1 jeśli k > rozmiar kopca
-    int kthLargest(int k) {
-        // UZUPEŁNIJ KOD
+    int kthLargest(int k) 
+    {
+        if (k <= 0 || k > heap.size())
+        {
+          return -1;
+        }
+
+        MaxHeap copy = *this;
+        int result = -1;
+
+        for (int i = 0; i < k; i++)
+        {
+          result = copy.extractMax();
+        }
+
+        return result;
     }
 
     // TODO 9: Zaimplementuj funkcję sprawdzającą czy wektor reprezentuje poprawny max-heap
@@ -134,23 +222,43 @@ public:
     // - heap[i] >= heap[leftChild(i)] (jeśli lewe dziecko istnieje)
     // - heap[i] >= heap[rightChild(i)] (jeśli prawe dziecko istnieje)
     // Zwróć true jeśli wszystkie węzły spełniają warunek, false w przeciwnym razie
-    bool isValidHeap() {
-        // UZUPEŁNIJ KOD
+    bool isValidHeap()
+    {
+        for (int i = 0; i < heap.size(); i++)
+        {
+          int left = leftChild(i);
+          int right = rightChild(i);
+
+          if (left < heap.size() && heap[i] < heap[left])
+          {
+            return false;
+          }
+
+          if (right < heap.size() && heap[i] < heap[right])
+          {
+            return false;
+          }
+        }
+
+        return true;
     }
 
     // ========================================================================
     // Funkcje pomocnicze do testów (gotowe)
     // ========================================================================
 
-    void display() {
+    void display() 
+    {
         displayHeap();
     }
 
-    vector<int> getHeapArray() {
+    vector<int> getHeapArray() 
+    {
         return heap;
     }
 
-    void clear() {
+    void clear() 
+    {
         heap.clear();
     }
 };
