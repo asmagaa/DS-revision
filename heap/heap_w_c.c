@@ -2,13 +2,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-
-
-// NIE ZROBIONE!!!
-
-
-
-
 // Implementacja kopca typu max-heap (rodzic >= dzieci)
 // Kopiec przechowujemy w tablicy, gdzie dla węzła na indeksie i:
 // - lewe dziecko: 2*i + 1
@@ -61,6 +54,14 @@ void resizeHeap(MaxHeap* h) {
     h->heap = (int*)realloc(h->heap, h->capacity * sizeof(int));
 }
 
+// swap do pomocy w insercie i heapify downie
+void swap(int* a, int* b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 // ============================================================================
 // POZIOM 1: ŁATWY
 // ============================================================================
@@ -74,26 +75,71 @@ void resizeHeap(MaxHeap* h) {
 //    - Porównuj z rodzicem: parent(i)
 //    - Jeśli element > rodzic, zamień miejscami i kontynuuj
 //    - Zatrzymaj się gdy element <= rodzic lub dotrzesz do korzenia
-void insert(MaxHeap* h, int value) {
-    // UZUPEŁNIJ KOD
+void insert(MaxHeap* h, int value) 
+{
+    if (h->size >= h->capacity)
+    {
+        resizeHeap(h);
+    }
+
+    h->heap[h->size] = value;
+    int i = h->size;
+    h->size++;
+
+    while (i > 0 && h->heap[i] > h->heap[parent(i)])
+    {
+        swap(&h->heap[i], &h->heap[parent(i)]);
+        i = parent(i);
+    }
 }
 
 // TODO 2: Zaimplementuj funkcję zwracającą maksymalny element (bez usuwania)
 // W max-heap maksymalny element to zawsze korzeń (heap[0])
 // Zwróć -1 jeśli kopiec jest pusty
-int getMax(MaxHeap* h) {
-    // UZUPEŁNIJ KOD
+int getMax(MaxHeap* h) 
+{
+    if (h->size == 0)
+    {
+        return -1;
+    }
+
+    return h->heap[0];
 }
 
 // TODO 3: Zaimplementuj funkcję zwracającą rozmiar kopca
 // Po prostu zwróć pole size
-int getSize(MaxHeap* h) {
-    // UZUPEŁNIJ KOD
+int getSize(MaxHeap* h) 
+{
+    return h->size;
 }
 
 // ============================================================================
 // POZIOM 2: ŚREDNI
 // ============================================================================
+
+// heapify down trzeba bedzie wczesniej zadeklarowac bo uzyje w extractcie
+
+void heapifyDown(MaxHeap* h, int i)
+{
+    int largest = i;
+    int left = leftChild(i);
+    int right = rightChild(i);
+
+    if (left < h->size && h->heap[left] > h->heap[largest])
+    {
+        largest = left;
+    }
+    if (right < h->size && h->heap[right] > h->heap[largest])
+    {
+        largest = right;
+    }
+
+    if (largest != i)
+    {
+        swap(&h->heap[i], &h->heap[largest]);
+        heapifyDown(h, largest);
+    }
+}
 
 // TODO 4: Zaimplementuj funkcję usuwającą i zwracającą maksymalny element
 // Kroki:
@@ -103,8 +149,23 @@ int getSize(MaxHeap* h) {
 // 4. Zmniejsz size
 // 5. Przesuwaj nowy korzeń w dół (heapify down)
 // 6. Zwróć zapisaną wartość max
-int extractMax(MaxHeap* h) {
-    // UZUPEŁNIJ KOD
+int extractMax(MaxHeap* h) 
+{
+    if (h->size == 0)
+    {
+        return -1;
+    }
+
+    int maxValue = h->heap[0];
+    h->heap[0] = h->heap[h->size - 1];
+    h->size--;
+
+    if (h->size > 0)
+    {
+        heapifyDown(h, 0);
+    }
+    
+    return maxValue;
 }
 
 // TODO 5: Zaimplementuj funkcję naprawiającą własność kopca w dół od indeksu i
@@ -114,9 +175,8 @@ int extractMax(MaxHeap* h) {
 // 1. Znajdź indeksy lewego i prawego dziecka
 // 2. Znajdź największy element spośród: węzeł i, lewe dziecko, prawe dziecko
 // 3. Jeśli największy != i, zamień miejscami i wywołaj rekurencyjnie dla dziecka
-void heapifyDown(MaxHeap* h, int i) {
-    // UZUPEŁNIJ KOD
-}
+
+// na gorze (113)
 
 // TODO 6: Zaimplementuj funkcję budującą kopiec z dowolnej tablicy
 // Otrzymujesz tablicę wartości i jej rozmiar - musisz przekształcić ją w poprawny kopiec
@@ -127,8 +187,24 @@ void heapifyDown(MaxHeap* h, int i) {
 //    - Zacznij od ostatniego rodzica: (size/2 - 1)
 //    - Idź wstecz do korzenia (indeks 0)
 // Złożoność: O(n)
-void buildHeap(MaxHeap* h, int* arr, int n) {
-    // UZUPEŁNIJ KOD
+void buildHeap(MaxHeap* h, int* arr, int n) 
+{
+    while (h->capacity < n)
+    {
+        resizeHeap(h);
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        h->heap[i] = arr[i];
+    }
+
+    h->size = n;
+
+    for (int i = h->size / 2 - 1; i >= 0; i--) 
+    {
+        heapifyDown(h, i);
+    }
 }
 
 // ============================================================================
@@ -142,8 +218,24 @@ void buildHeap(MaxHeap* h, int* arr, int n) {
 // 2. Skopiuj wszystkie elementy z other do bieżącego kopca
 // 3. Zaktualizuj size
 // 4. Wywołaj heapifyDown dla wszystkich węzłów niebędących liśćmi
-void mergeHeap(MaxHeap* h, MaxHeap* other) {
-    // UZUPEŁNIJ KOD
+void mergeHeap(MaxHeap* h, MaxHeap* other) 
+{
+    while (h->capacity < h->size + other->size)
+    {
+        resizeHeap(h);
+    }
+
+    for (int i = 0; i < other->size; i++)
+    {
+        h->heap[h->size + i] = other->heap[i];
+    }
+
+    h->size += other->size;
+
+    for (int i = h->size / 2 - 1; i >= 0; i--)
+    {
+        heapifyDown(h, i);
+    }
 }
 
 // TODO 8: Zaimplementuj funkcję zwracającą k-ty największy element
@@ -155,8 +247,31 @@ void mergeHeap(MaxHeap* h, MaxHeap* other) {
 // 4. Zwolnij pamięć kopii
 // 5. Zwróć zapisaną wartość
 // Zwróć -1 jeśli k > rozmiar kopca lub k <= 0
-int kthLargest(MaxHeap* h, int k) {
-    // UZUPEŁNIJ KOD
+int kthLargest(MaxHeap* h, int k) 
+{
+    if (k <= 0 || k > h->size)
+    {
+        return -1;
+    }
+
+    MaxHeap copy;
+    initHeap(&copy, h->capacity);
+    copy.size = h->size;
+
+    for (int i = 0; i < h->size; i++)
+    {
+        copy.heap[i] = h->heap[i];
+    }
+
+    int result = -1;
+    for (int i = 0; i < k; i++)
+    {
+        result = extractMax(&copy);
+    }
+
+    freeHeap(&copy);
+
+    return result;
 }
 
 // TODO 9: Zaimplementuj funkcję sprawdzającą czy tablica reprezentuje poprawny max-heap
@@ -164,8 +279,25 @@ int kthLargest(MaxHeap* h, int k) {
 // - heap[i] >= heap[leftChild(i)] (jeśli lewe dziecko istnieje)
 // - heap[i] >= heap[rightChild(i)] (jeśli prawe dziecko istnieje)
 // Zwróć true jeśli wszystkie węzły spełniają warunek, false w przeciwnym razie
-bool isValidHeap(MaxHeap* h) {
-    // UZUPEŁNIJ KOD
+bool isValidHeap(MaxHeap* h) 
+{
+    for (int i = 0; i < h->size; i++)
+    {
+        int left = leftChild(i);
+        int right = rightChild(i);
+
+        if (left < h->size && h->heap[i] < h->heap[left])
+        {
+            return false;
+        }
+
+        if (right < h->size && h->heap[i] < h->heap[right]) 
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // ========================================================================
